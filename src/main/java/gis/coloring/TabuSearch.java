@@ -18,40 +18,72 @@ import static java.lang.Math.*;
 public class TabuSearch {
 
 
-    CircularFifoQueue<Move> tabu;
+    private CircularFifoQueue<Move> tabu = new CircularFifoQueue<>();
 
-    Graph graph;
+    private Graph graph;
 
     // number of colors
-    int k;
+    private int k;
 
-    TabuSearch(Graph graph) {
+    public TabuSearch(Graph graph) {
         this.graph = graph;
         k = calcUpperBoundColorsNumber();
     }
 
-    public void color() {
-        final int maxIterations;
+    public List<Integer> color() {
+        final int maxIterations = 1000;
+        List<Integer> colors = randomColors();
+        List<Integer> bestColors = colors;
+        for(int i = 0; !isColoring(colors) && i < maxIterations;i++) {
+            Move bestNeighbour = bestNeighbour(colors);
+            tabu.add(getReverseMove(bestNeighbour, colors));
+            applyMove(colors, bestNeighbour);
+        }
 
-        List<Integer> initColors = randomColors();
-
+        return colors;
     }
 
-    public List<Move> neighbours(List<Integer> colors) {
+    private Move bestNeighbour(List<Integer> colors) {
         // no. of neighbours generated
-        final int rep = 10;
+        int rep = 10;
+        // current objective value
+        int objective = objective(colors);
 
+        // select rep random conflictingNodes
         List<Integer> nodes = conflictingNodes(colors);
+        if(nodes.size() < rep) rep = nodes.size();
+        List<Integer> range = IntStream.range(0, nodes.size()).boxed().collect(Collectors.toList());
+        Collections.shuffle(range);
+        List<Integer> selectedNodes = IntStream.range(0, rep).map(i -> nodes.get(range.get(i))).boxed().collect(Collectors.toList());
+
+        // generate neighbour moves
+        Move bestNeighbour = null;
         Random random = new Random();
-        return random.ints(0, k).limit(rep)
-                .map(i -> nodes.get(i)).boxed()
-                .map(n -> {int c = random.nextInt(k - 1); return new Move(n, c == colors.get(n) ? k - 1 : c);}) // assign different random color
-                .collect(Collectors.toList());
+        HashSet<Move> tabuSet = new HashSet<>(tabu);
+        for(Integer node : selectedNodes) {
+            int c = random.nextInt(k - 1);
+            Move neighbour = new Move(node, c == colors.get(node) ? k - 1 : c);
+            int neighbourObjective = objective(colors, neighbour);
+            if(!tabu.contains(neighbour) || aspirationCondition(neighbourObjective, objective)) {
+                bestNeighbour = neighbour;
+                if(neighbourObjective < objective) return neighbour; // suggested improvement condition
+            }
+        }
+
+        return bestNeighbour;
     }
 
     private Integer lastNotWorse;
-    public int aspiration(int objective) {
-        return lastNotWorse == null ? objective - 1 : lastNotWorse - 1;
+    public boolean aspirationCondition(int neighbourObjective, int objective) {
+        if(lastNotWorse == null) {
+            if(neighbourObjective <= objective - 1) {
+                lastNotWorse = neighbourObjective;
+                return true;
+            }
+            return false;
+        }
+        if(neighbourObjective <= lastNotWorse - 1) return true;
+        return false;
     }
 
     private int calcUpperBoundColorsNumber() {
@@ -68,11 +100,27 @@ public class TabuSearch {
 
     // number of edges for which both ends are of the same color
     // the less the better
-    public int objective(List<Integer> colors) {
+    private int objective(List<Integer> colors) {
         return conflictingEdges(colors).size();
     }
 
-    public List<Edge> conflictingEdges(List<Integer> colors) {
+    private int objective(List<Integer> colors, Move move) {
+        applyMove(colors, move);
+        int objective = objective(colors);
+        // reverse changes
+        applyMove(colors, getReverseMove(move, colors));
+        return objective;
+    }
+
+    private Move getReverseMove(Move move, List<Integer> colors) {
+        return new Move(move.getNode(), colors.get(move.getNode()));
+    }
+
+    private void applyMove(List<Integer> colors, Move move) {
+        colors.set(move.getNode(), move.getColor());
+    }
+
+    private List<Edge> conflictingEdges(List<Integer> colors) {
         List<Edge> edges = new ArrayList<>();
         for(Edge edge : graph.getEdges())
             if(colors.get(edge.getNode1()) == colors.get(edge.getNode2()))
@@ -80,7 +128,7 @@ public class TabuSearch {
         return edges;
     }
 
-    public List<Integer> conflictingNodes(List<Integer> coloring) {
+    private List<Integer> conflictingNodes(List<Integer> coloring) {
         Set<Integer> nodes = new HashSet<>();
         conflictingEdges(coloring).stream()
                 .forEach(e -> {nodes.add(e.getNode1());nodes.add(e.getNode2());});
@@ -88,7 +136,7 @@ public class TabuSearch {
     }
 
     // coloring if there is no adjacent nodes of the same color
-    public boolean isColoring(List<Integer> colors) {
+    private boolean isColoring(List<Integer> colors) {
         return objective(colors) == 0;
     }
 }

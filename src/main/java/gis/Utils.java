@@ -6,13 +6,14 @@ import org.graphstream.graph.implementations.SingleGraph;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.List;
 import java.util.Scanner;
 
 /**
  * Created by gospo on 15.01.15.
  */
 public class Utils {
-    public static org.graphstream.graph.Graph convertGraphToGSGraph(Graph graph) {
+    public static org.graphstream.graph.Graph convertGraphToGSGraph(Graph graph, List<Integer> colors) {
         org.graphstream.graph.Graph gsGraph = new SingleGraph(null);
 
         for (int node = 0; node < graph.getSize(); node++) {
@@ -20,7 +21,7 @@ public class Utils {
             gsGraph.addNode(String.valueOf(node));
             // set label
             org.graphstream.graph.Node gsNode = gsGraph.getNode(String.valueOf(node));
-            gsNode.setAttribute("ui.label", graph.getColor(node));
+            gsNode.setAttribute("ui.label", colors.get(node));
             // create edges if necessary
             for (int adjNode : graph.getAdjacentNodes(node)) {
                 if (gsGraph.getNode(String.valueOf(adjNode)) != null)

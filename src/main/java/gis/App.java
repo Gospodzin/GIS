@@ -14,12 +14,12 @@ import java.util.stream.IntStream;
  */
 public class App {
 
-    static String path = App.class.getClassLoader().getResource("graph5.txt").getPath();
+    static String path = App.class.getClassLoader().getResource("multi_graph.txt").getPath();
 
     public static void main(String[] args) throws InterruptedException {
-       // Graph graph = Utils.generateRandomGraph(5, 0.5);/
-        Graph graph = Utils.loadGraphFromFile(path);
-        List<Integer> coloring = Coloring.color(graph);
+        Graph graph = Utils.generateRandomGraph(100, 0.05);
+        //Graph graph = Utils.loadGraphFromFile(path);
+        List<Integer> coloring = Coloring.color(graph, 1000);
         if(coloring == null) { //coloring not found
             System.out.println("coloring found: false");
             coloring = IntStream.range(0, graph.getSize()).map(i -> -1).boxed().collect(Collectors.toList());

@@ -20,27 +20,31 @@ public class TabuSearch {
 
     private CircularFifoQueue<Move> tabu = new CircularFifoQueue<>();
 
+    private int maxIters;
+
     private Graph graph;
 
     // number of colors
     private int k;
 
-    public TabuSearch(Graph graph, int k) {
+    public TabuSearch(Graph graph, int k, int maxIters) {
         this.graph = graph;
         this.k = k;
+        this.maxIters = maxIters;
     }
 
     public List<Integer> color() {
-        final int maxIterations = 1;
         List<Integer> colors = randomColors();
         List<Integer> bestColors = colors;
-        for(int i = 0; !isColoring(colors) && i < maxIterations;i++) {
+        if(k==1) return isColoring(colors) ? colors : null;
+        int i;
+        for(i = 0; !isColoring(colors) && i < maxIters;i++) {
             Move bestNeighbour = bestNeighbour(colors);
             tabu.add(getReverseMove(bestNeighbour, colors));
             applyMove(colors, bestNeighbour);
         }
-        if(!isColoring(colors))
-            return null;
+        System.out.println("Tabu Search finished after " + i + " iteartions.");
+        if(!isColoring(colors)) return null;
         return colors;
     }
 

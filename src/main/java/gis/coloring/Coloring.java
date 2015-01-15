@@ -13,13 +13,16 @@ import static java.lang.Math.sqrt;
  * Created by gospo on 15.01.15.
  */
 public class Coloring {
-    public static List<Integer> color(Graph graph) {
+    public static List<Integer> color(Graph graph, int tabuIters) {
         int k = calcUpperBoundColorsNumber(graph);
         List<Integer> colors;
         List<Integer> next = null;
         do {
             colors = next;
-            next = new TabuSearch(graph, k--).color();
+            System.out.println("Attempting to color with " + k + " colors...");
+            long start = System.nanoTime();
+            next = new TabuSearch(graph, k--, tabuIters).color();
+            System.out.println("Iteration processing time: " + (System.nanoTime() - start)/1e9);
         } while (next != null);
 
         return colors;

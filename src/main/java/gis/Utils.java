@@ -7,6 +7,7 @@ import org.graphstream.graph.implementations.SingleGraph;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -32,6 +33,19 @@ public class Utils {
         return gsGraph;
     }
 
+    public static Graph generateRandomGraph(int size, double qProb) {
+        Graph graph = new Graph(size);
+        Random random = new Random();
+        for(int i = 0 ; i<size;i++) {
+            for(int j = i+1 ; j<size;j++) {
+                if(random.nextDouble() <= qProb)
+                    graph.addEdge(new Edge(i, j));
+            }
+        }
+
+        return graph;
+    }
+
     public static Graph loadGraphFromFile(String path) {
         Scanner scanner = null;
         try {
@@ -46,5 +60,9 @@ public class Utils {
         while (scanner.hasNextInt())
             graph.addEdge(new Edge(scanner.nextInt(), scanner.nextInt()));
         return graph;
+    }
+
+    public static int countColors(List<Integer> colors) {
+        return colors.stream().mapToInt(i->i.intValue()).max().getAsInt() + 1;
     }
 }

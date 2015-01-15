@@ -25,13 +25,13 @@ public class TabuSearch {
     // number of colors
     private int k;
 
-    public TabuSearch(Graph graph) {
+    public TabuSearch(Graph graph, int k) {
         this.graph = graph;
-        k = calcUpperBoundColorsNumber();
+        this.k = k;
     }
 
     public List<Integer> color() {
-        final int maxIterations = 1000;
+        final int maxIterations = 1;
         List<Integer> colors = randomColors();
         List<Integer> bestColors = colors;
         for(int i = 0; !isColoring(colors) && i < maxIterations;i++) {
@@ -39,7 +39,8 @@ public class TabuSearch {
             tabu.add(getReverseMove(bestNeighbour, colors));
             applyMove(colors, bestNeighbour);
         }
-
+        if(!isColoring(colors))
+            return null;
         return colors;
     }
 
@@ -84,13 +85,6 @@ public class TabuSearch {
         }
         if(neighbourObjective <= lastNotWorse - 1) return true;
         return false;
-    }
-
-    private int calcUpperBoundColorsNumber() {
-        int maxDegree = IntStream.range(0, graph.getSize())
-                .map(i -> graph.getAdjacentNodes(i).size())
-                .min().getAsInt();
-        return (int) round(min(0.5 + sqrt(2 * graph.getEdges().size() + 0.25), maxDegree + 1));
     }
 
     private List<Integer> randomColors() {

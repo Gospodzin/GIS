@@ -74,6 +74,17 @@ public class Utils {
         }
     }
 
+    public static void writeColoringToFile(List<Integer> colors, String path) {
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+            for(int i = 0 ; i < colors.size() ; i++) {
+                bw.write(i + " " + colors.get(i));
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static int countColors(List<Integer> colors) {
         return colors.stream().mapToInt(i->i.intValue()).max().getAsInt() + 1;
     }

@@ -84,9 +84,9 @@ public class TabuSearch {
             Move neighbour = new Move(node, c == colors.get(node) ? k - 1 : c);
             int neighbourPenality = ltp ? getMovePenality(neighbour) : 0; // long-term penality
             int neighbourObjective = objective(colors, neighbour);
-            if(!tabu.contains(neighbour) || aspirationCondition(neighbourObjective + neighbourPenality, objective)) {
+            if(!tabu.contains(neighbour) || aspirationCondition(neighbourObjective, objective)) {
                 if(neighbourObjective == 0 ) return neighbour; // return when coloring found improvement
-                if(neighbourObjective + neighbourPenality < objective) return neighbour; // suggested improvement condition
+                if(neighbourObjective < objective) return neighbour; // suggested improvement condition
                 if(bestNeighbour == null) {
                     bestNeighbour = neighbour;
                     bestNeighbourObjective = neighbourObjective;

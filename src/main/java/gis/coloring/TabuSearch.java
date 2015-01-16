@@ -17,20 +17,30 @@ import static java.lang.Math.*;
  */
 public class TabuSearch {
 
+    // penality factor
+    private static final double ALFA = 1;
 
-    private CircularFifoQueue<Move> tabu = new CircularFifoQueue<>();
+    // long term penlity switch
+    private boolean ltp;
+
+    private CircularFifoQueue<Move> tabu = new CircularFifoQueue<>(100);
 
     private int maxIters;
 
     private Graph graph;
 
     // number of colors
-    private int k;
+    protected int k;
 
     public TabuSearch(Graph graph, int k, int maxIters) {
+        this(graph, k, maxIters, true);
+    }
+
+    public TabuSearch(Graph graph, int k, int maxIters, boolean longTermPenality) {
         this.graph = graph;
         this.k = k;
         this.maxIters = maxIters;
+        this.ltp = longTermPenality;
     }
 
     public List<Integer> color() {
@@ -38,14 +48,16 @@ public class TabuSearch {
         List<Integer> bestColors = colors;
         if(k==1) return isColoring(colors) ? colors : null;
         int i;
-        for(i = 0; !isColoring(colors) && i < maxIters;i++) {
-            Move bestNeighbour = bestNeighbour(colors);
-            tabu.add(getReverseMove(bestNeighbour, colors));
-            applyMove(colors, bestNeighbour);
-        }
-        System.out.println("Tabu Search finished after " + i + " iteartions.");
+        for(i = 0; !isColoring(colors) && i < maxIters;i++) iterate(colors);
         if(!isColoring(colors)) return null;
         return colors;
+    }
+
+    protected void iterate(List<Integer> colors) {
+        Move bestNeighbour = bestNeighbour(colors);
+        if(ltp) increaseMoveCount(bestNeighbour); // long-term memory
+        tabu.add(getReverseMove(bestNeighbour, colors));
+        applyMove(colors, bestNeighbour);
     }
 
     private Move bestNeighbour(List<Integer> colors) {
@@ -63,19 +75,47 @@ public class TabuSearch {
 
         // generate neighbour moves
         Move bestNeighbour = null;
+        Integer bestNeighbourObjective = null;
+        Integer bestNeighbourPenality = null;
         Random random = new Random();
         HashSet<Move> tabuSet = new HashSet<>(tabu);
         for(Integer node : selectedNodes) {
             int c = random.nextInt(k - 1);
             Move neighbour = new Move(node, c == colors.get(node) ? k - 1 : c);
+            int neighbourPenality = ltp ? getMovePenality(neighbour) : 0; // long-term penality
             int neighbourObjective = objective(colors, neighbour);
-            if(!tabu.contains(neighbour) || aspirationCondition(neighbourObjective, objective)) {
-                bestNeighbour = neighbour;
-                if(neighbourObjective < objective) return neighbour; // suggested improvement condition
+            if(!tabu.contains(neighbour) || aspirationCondition(neighbourObjective + neighbourPenality, objective)) {
+                if(neighbourObjective == 0 ) return neighbour; // return when coloring found improvement
+                if(neighbourObjective + neighbourPenality < objective) return neighbour; // suggested improvement condition
+                if(bestNeighbour == null) {
+                    bestNeighbour = neighbour;
+                    bestNeighbourObjective = neighbourObjective;
+                    bestNeighbourPenality = neighbourPenality;
+                }
+                else if(neighbourObjective + neighbourPenality < bestNeighbourObjective + bestNeighbourPenality) {
+                    bestNeighbour = neighbour;
+                    bestNeighbourObjective = neighbourObjective;
+                    bestNeighbourPenality = neighbourPenality;
+                }
             }
         }
 
         return bestNeighbour;
+    }
+
+    public int getMovePenality(Move move) {
+        return (int)ALFA*getMoveCount(move);
+    }
+
+    private HashMap<Move, Integer> moveCounts = new HashMap<>();
+    private int getMoveCount(Move move) {
+        Integer count = moveCounts.get(move);
+        return count == null ? 0 : count;
+    }
+
+    private void increaseMoveCount(Move move) {
+        Integer count = moveCounts.get(move);
+        moveCounts.put(move, count == null ? 1 : count + 1);
     }
 
     private Integer lastNotWorse;

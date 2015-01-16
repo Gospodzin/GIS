@@ -4,8 +4,7 @@ import gis.graph.Edge;
 import gis.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -60,6 +59,19 @@ public class Utils {
         while (scanner.hasNextInt())
             graph.addEdge(new Edge(scanner.nextInt(), scanner.nextInt()));
         return graph;
+    }
+
+    public static void writeGraphToFile(Graph graph, String path) {
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+            bw.write(String.valueOf(graph.getSize()));
+            bw.newLine();
+            for(Edge edge : graph.getEdges()) {
+                bw.write(edge.getNode1() + " " + edge.getNode2());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static int countColors(List<Integer> colors) {

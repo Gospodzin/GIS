@@ -1,19 +1,12 @@
 package gis;
 
 import gis.coloring.Coloring;
-import gis.coloring.TabuSearch;
 import gis.graph.Graph;
-import gis.stats.SColoring;
-import gis.stats.StatsCollector;
 import gis.stats.StatsEngine;
 import org.graphstream.ui.swingViewer.Viewer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**

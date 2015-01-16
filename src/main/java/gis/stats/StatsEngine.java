@@ -36,8 +36,8 @@ public class StatsEngine {
         System.out.print("L: ");preview(l_stats);
         System.out.print("NL: ");preview(stats);
 
-        writeStats(l_stats, "/home/gospo/mine/GIS/src/main/resources/stats_l.txt");
-        writeStats(stats, "/home/gospo/mine/GIS/src/main/resources/stats.txt");
+        writeStats(l_stats, "stats_l.txt");
+        writeStats(stats, "stats.txt");
     }
 
     private void writeStats(List<Stats> stats, String path) {
